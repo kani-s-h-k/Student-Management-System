@@ -1,33 +1,156 @@
 #include <bits/stdc++.h>
 #include <fstream>
 #include <conio.h>
-#include <windows.h>
 #include <iomanip>
 using namespace std;
 
-bool checkRoll(string target){
+struct Student{
+	string roll;
+	string name;
+	double marks;
+};
+
+struct Widths{
+    int roll;
+    int name;
+    int marks;
+};
+
+Student parseStudent(const string& line){
+    Student s;
+    stringstream ss(line);
+    string strmarks;
+    getline(ss,s.roll,',');
+    getline(ss,s.name,',');
+    getline(ss,strmarks);
+    s.marks = stod(strmarks);
+
+    return s;
+}
+
+
+bool checkRoll(const string &target){
 	ifstream fin("students.txt");
 
 	string line;
 
 	while(getline(fin,line)){
-		stringstream ss(line);
-		string roll;
-		getline(ss,roll,',');
-		if(roll == target){ 
+		Student s = parseStudent(line);
+		if(s.roll == target){ 
 			return true;
 		}
 	}
 	return false;
 }
 
+Widths maxNumbers(){
+	ifstream fin("students.txt");
+	int maxRoll = strlen("Roll No.");
+	int maxName = strlen("Name");
+	int maxMarks = strlen("Marks");
+
+	string line;
+
+	while(getline(fin, line)){
+
+		Student s = parseStudent(line);
+
+		maxRoll = max(maxRoll, (int)s.roll.size());
+		maxName = max(maxName, (int)s.name.size());
+		ostringstream out;
+		out << fixed << setprecision(2) << s.marks;
+		maxMarks = max(maxMarks, (int)out.str().size());
+	}
+	fin.close();
+	return {maxRoll,maxName,maxMarks};
+}
+
+Student searchStudent(const string& target){
+    ifstream fin("students.txt");
+
+    string line;
+
+    while(getline(fin,line)){
+        Student s =parseStudent(line);
+
+        if(s.roll == target)
+            return s;
+    }
+
+    return {"","",0};
+}
+
+void printTemplate(const Widths &w){
+	cout
+		<< left
+		<< setw(w.roll+2) << "Roll No."
+		<<"| "
+		<< setw(w.name+2) << "Name"
+		<<"| "
+		<< setw(w.marks+2)<< "Marks"
+		<< endl;
+
+		cout << string(w.roll + w.name + w.marks + 10, '-') << '\n';
+
+}
+
+
+void printStudent(const Student& s){
+	ostringstream out;
+	out << fixed << setprecision(2) << s.marks;
+    Widths w{
+        max((int)s.roll.size(), 8),
+        max((int)s.name.size(), 4),
+        max((int)out.str().size(),5)
+    };
+
+    printTemplate(w);
+
+    cout << left
+         << setw(w.roll+2) << s.roll
+         << "| "
+         << setw(w.name+2) << s.name
+         << "| "
+         << setw(w.marks+2) << 
+         fixed << setprecision(2)
+		 << s.marks
+         << '\n';
+}
+
+
+vector<Student> loadStudents(){
+	ifstream fin("students.txt");
+	vector<Student> students;
+	string line;
+	while(getline(fin,line)){
+		students.emplace_back(parseStudent(line));
+	}
+	return students;
+}
+
+void printSortedOrder( const vector<Student> &students){
+	Widths w = maxNumbers();
+	printTemplate(w);
+	for(auto &s : students){
+		cout << left
+			<< setw(w.roll+2) << s.roll
+			<< "| "
+			<< setw(w.name+2) << s.name
+			<< "| "
+			<< setw(w.marks+2)
+			<< fixed << setprecision(2)
+			<< s.marks
+		<< endl;
+	}
+}
+
+void pauseScreen(){
+	cin.ignore(numeric_limits<streamsize>::max(), '\n');
+	cout<<"\nPlease Enter to continue...";
+	while(_getch()!=13){} //Waiting while the user enters the specified key...
+}
+
 int main(){
-
-
-// #ifndef ONLINE_JUDGE
-// 	freopen("E:/sublime/input.txt","r",stdin);
-// 	freopen("E:/sublime/output.txt","w",stdout);
-// #endif
 						//Code Starts Here
 	int ch;
 	bool flag = true;
@@ -51,7 +174,7 @@ int main(){
 			case 1: 
 			{
 				string name, roll;
-				string marks;
+				double marks;
 
 				cout<<"Enter Roll Number: ";
 				cin>>roll;
@@ -73,8 +196,7 @@ int main(){
 					cout<<"\nStudent Added Successfully!";
 					cout<<endl;
 					fout.close();
-					cout<<"\nPlease Enter to continue...";
-					while(_getch()!=13){} //Waiting while the user enters the specified key...
+					pauseScreen();
 				} else{
 					cout<<"\nStudent already registered!";
 				}
@@ -89,119 +211,51 @@ int main(){
     				cout << "\nError opening file!\n";
     				break;
 				}
-				int maxRoll = strlen("Roll No.");
-				int maxName = strlen("Name");
-				int maxMarks = strlen("Marks");
-
-				string line1;
-
-				while(getline(fin, line1)){
-
-					stringstream ss(line1);
-					string name, roll, marks;
-					getline(ss,roll,',');
-					getline(ss,name,',');
-					getline(ss,marks);
-
-					maxRoll = max(maxRoll, (int)roll.size());
-					maxName = max(maxName, (int)name.size());
-					maxMarks = max(maxMarks, (int)marks.size());
-				}
-				fin.clear();
-				fin.seekg(0);
+				Widths w= maxNumbers();
 
 				cout << "\n--- View All Students ---\n\n";
 
-				cout
-						<< left
-						<< setw(maxRoll+2) << "Roll No."
-						<<"| "
-						<< setw(maxName+2) << "Name"
-						<<"| "
-						<< setw(maxMarks+2)<< "Marks"
-						<< endl;
-
-				cout << string(maxRoll + maxName + maxMarks + 10, '-') << '\n';
+				printTemplate(w);
 				
-				string line2;
+				string line;
 
-				while(getline(fin,line2)){
-					stringstream ss(line2);
-					string name, roll;
-					string marks;
-					getline(ss,roll,',');
-					getline(ss,name,',');
-					getline(ss,marks);
+				while(getline(fin,line)){
+					Student s = parseStudent(line);
 
 					cout << left
-					     << setw(maxRoll+2) << roll
+					     << setw(w.roll+2) << s.roll
 					     << "| "
-					     << setw(maxName+2) << name
+					     << setw(w.name+2) << s.name
 					     << "| "
-					     << setw(maxMarks+2) << marks
-					     << endl;
+					     << setw(w.marks+2) 
+					     << fixed << setprecision(2)
+					     << s.marks << endl;
 				}
 				fin.close();
-				cin.ignore(numeric_limits<streamsize>::max(), '\n');
-				cout<<"\nPlease Enter to continue...";
-
-				while(_getch()!=13){} //Waiting while the user enters the specified key...
+				pauseScreen();
 				cout<<endl;
 				break;
 			}
 			case 3:{
 				cout << "\n--- Search Student ---\n\n";
-				bool fl = false;
 				string target;
 				cout<<"Enter Roll Number: ";
 				cin>>target;
 				cout<<endl;
-				ifstream fin("students.txt");
-				string roll,name,marks;
-				string line;
-				while(getline(fin,line)){
-					stringstream ss(line);
-					getline(ss,roll,',');
-					if(roll == target){
-						fl = true;
-						getline(ss,name,',');
-						getline(ss,marks);
+				Student s = searchStudent(target);		
 
-						int maxRoll = max((int)roll.size(),8);
-						int maxName = max((int)name.size(),4);
-						int maxMarks = max((int)marks.size(),5);
-
-						cout
-						<< left
-						<< setw(maxRoll+2) << "Roll No."
-						<<"| "
-						<< setw(maxName+2) << "Name"
-						<<"| "
-						<< setw(maxMarks+2)<< "Marks" 
-						<< endl;
-
-						cout
-						<< left
-						<< setw(maxRoll+2) << roll
-						<<"| "
-						<< setw(maxName+2) << name
-						<<"| "
-						<< setw(maxMarks+2)<< marks
-						<< endl;	
-						break;
-					}
-				}
-				fin.close();
-				if(!fl) cout<<"Student not registered!"<<endl;
-				cin.ignore(numeric_limits<streamsize>::max(), '\n');
-				cout<<"\nPlease Enter to continue...";
-				while(_getch()!=13){} //Waiting while the user enters the specified key...
+				if(s.roll.empty()) cout<<"Student not registered!"<<endl;
+				else{
+					 printStudent(s);
+				}		
+				pauseScreen();
 				break;
 			}
 			case 4: 
 			{
 				cout << "\n--- Update Student Details ---\n\n";
-				string roll,Newname,Newmarks;
+				string roll,Newname;
+				double Newmarks;
 				cout<<"\n Enter Roll Number: ";
 				cin>>roll;
 				cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -218,13 +272,9 @@ int main(){
 
 					string line;
 					while(getline(fin,line)){
-						stringstream ss(line);
-						string name,marks,r;
-						getline(ss,r,',');
-						getline(ss,name,',');
-						getline(ss,marks);
+						Student s = parseStudent(line);
 
-						if(r!=roll){
+						if(s.roll!=roll){
 							fout<<line<<endl;
 						}
 						else{
@@ -243,17 +293,13 @@ int main(){
 						}
 				}
 				else cout<<"Student Not Registered!"<<endl;
-				
-				
-				cin.ignore(numeric_limits<streamsize>::max(), '\n');
-				cout<<"\nPlease Enter to continue...";
-				while(_getch()!=13){} //Waiting while the user enters the specified key...
+				pauseScreen();
 				break;
 			}
 			case 5:
 				{
 				cout << "\n--- Delete Student Registration---\n\n";
-				string roll,Newname,Newmarks;
+				string roll;
 				cout<<"\n Enter Roll Number: ";
 				cin>>roll;
 				cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -266,12 +312,9 @@ int main(){
 
 					string line;
 					while(getline(fin,line)){
-						stringstream ss(line);
-						string r;
-						getline(ss,r,',');
-						
-
-						if(r!=roll){
+						Student s = parseStudent(line);
+		
+						if(s.roll!=roll){
 							fout<<line<<endl;
 						}
 
@@ -287,15 +330,44 @@ int main(){
 						}
 				}
 				else cout<<"Student Not Registered!"<<endl;
-				
-				
-				cin.ignore(numeric_limits<streamsize>::max(), '\n');
-				cout<<"\nPlease Enter to continue...";
-				while(_getch()!=13){} //Waiting while the user enters the specified key...
+				pauseScreen();
 				break;
 			}
-			case 6:
+			case 6:{
+				cout << "\n--- Sort Students ---\n\n";
+				cout<<"1. Sort by Name\n2. Sort by Marks\n";
+				int choice;
+				cout<<"Enter choice: ";
+				cin>>choice;
+
+				switch(choice){
+					case 1:{
+						vector<Student> students = loadStudents();
+						sort(students.begin(),students.end(),
+							[](const Student &a, const Student &b)
+							{
+								return a.name<b.name;
+							});
+						printSortedOrder(students);
+						break;
+					}
+					case 2:{
+						vector<Student> students = loadStudents();
+						sort(students.begin(),students.end(),
+							[](const Student &a, const Student &b)
+							{
+								return a.marks<b.marks;
+							});
+						printSortedOrder(students);
+						break;
+					}
+					default:
+						cout<<"Invalid Input!\n";
+						break;
+				}
+				pauseScreen();
 				break;
+			}
 			case 7:
 				cout<<"Exiting"<<endl;
 				flag = false;

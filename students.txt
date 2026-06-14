@@ -1,8 +1,1 @@
-25MCF1R23,Kanishk Malik,89.4
-25MCF1R16,Harsh,89.5
-25,YU ,99
-82198,vipul,231
-25mcf1r52,sujal,77
-13,hh,77
-22,88k,99
-66,kan,22
+
