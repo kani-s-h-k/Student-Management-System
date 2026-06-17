@@ -99,9 +99,9 @@ void printStudent(const Student& s){
 	ostringstream out;
 	out << fixed << setprecision(2) << s.marks;
     Widths w{
-        max((int)s.roll.size(), 8),
-        max((int)s.name.size(), 4),
-        max((int)out.str().size(),5)
+        max((int)s.roll.size(), (int)strlen("Roll No.")),
+        max((int)s.name.size(), (int)strlen("Name")),
+        max((int)out.str().size(),(int)strlen("Marks"))
     };
 
     printTemplate(w);
@@ -346,7 +346,7 @@ int main(){
 						sort(students.begin(),students.end(),
 							[](const Student &a, const Student &b)
 							{
-								return a.name<b.name;
+								return a.name>b.name;
 							});
 						printSortedOrder(students);
 						break;
@@ -356,7 +356,7 @@ int main(){
 						sort(students.begin(),students.end(),
 							[](const Student &a, const Student &b)
 							{
-								return a.marks<b.marks;
+								return a.marks>b.marks;
 							});
 						printSortedOrder(students);
 						break;
